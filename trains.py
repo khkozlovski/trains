@@ -14,11 +14,7 @@ async def main():
             await page.goto('https://wolnelektury.pl/katalog/nowe/')
             await refuse_help(page)
 
-            # FTYMI for position in range(100)
-            #     if position not in read_books.txt
-            #         book = await page.query_selector(f'#book-list article:nth-child({position})')
-            # book = await page.query_selector('#book-list article:nth-child(9)')
-            for position in range(100):
+            for position in range(99, -1, -1):
                 book = await page.query_selector(new_book_titles[position])
                 result = dict()
                 title_el = await book.query_selector('h2  a')
@@ -34,23 +30,22 @@ async def main():
                 book_url = 'https://wolnelektury.pl/katalog/lektura/' + f'{author_last_name}' + '-' + f'{title_slug}' + '.html'
                 with open('read_books.txt', 'r') as f:
                     content = f.read()
+                    cover = await book.query_selector('figure a img')
                     if f'{title_clean}, {author_last_name}' not in content:
                         print(result)
                         print(book_url)
-                        with open('read_books.txt', 'a') as file:
-                            file.write(
-                                f'{title_clean}, {author_last_name}\n'
-                            )
+                        try:
+                            await cover.click(timeout=2000)
+                            await refuse_help(page)
+                            await cover.click(timeout=2000)
+                            with open('read_books.txt', 'a') as file:
+                                file.write(
+                                    f'{title_clean}, {author_last_name}\n'
+                                )
+                        except Exception as error:
+                            print(error.__class__)
                     else:
                         print('Book read')
-
-            cover = await book.query_selector('figure a img')
-            try:
-                await cover.click(timeout=2000)
-            except Exception as error:
-                print(error.__class__)
-                await refuse_help(page)
-                await cover.click(timeout=2000)
 
             translator_el = await page.query_selector(
                 '.l-header__translators')
@@ -68,9 +63,6 @@ async def main():
                 result = dict()
                 await refuse_help(page)
                 train_phrase_paragraphs = await page.query_selector_all('.paragraph')
-                # FTYMI text_el = page.locator('#book-text') TU JEST MOJA PRÓBA SPOJRZENIA NA CAŁY TEKST, ŻEBY NIE CZYTAĆ KAŻDEGO paragraphu z OSOBNA
-                # text = await text_el.inner_text() if text_el else None
-                # train_phrase_paragraphs = await expect(text).to_contain_text(rail_phrase)
                 for paragraph in train_phrase_paragraphs:
                     if rail_phrase in await paragraph.inner_text():
                         await refuse_help(page)
@@ -81,16 +73,6 @@ async def main():
                 file.write(
                     f'{title}, ' f'{author_name}, ' f'{translator}\n' f'Cała książka na: {book_url}\n'
                     f'{found_phrases}')
-            #new_title_list =  with open('read_books.txt', 'x'):
-            #     pass
-            # if new_title_list() is True:
-            #     with open('read_books.txt', 'r+') as f:
-            #         old = f.read()
-            #         f.seek(0)
-            #         f.write(f'{title}' + f', {old}')
-            # else:
-            #     pass
-            # await browser.close()
 
 
 new_book_titles = ["#book-list article:nth-child(1)", "#book-list article:nth-child(2)",
@@ -174,11 +156,6 @@ def train_phrases() -> list[str]:
 def train_phrases_iterator() -> list[str]:
     for train_phrase in train_phrases():
         yield train_phrase
-
-
-# def new_book_titles_iterator() -> list[str]:
-#     for publication in new_book_titles():
-#         yield publication
 
 
 async def refuse_help(page):
