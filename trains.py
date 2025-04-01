@@ -14,10 +14,6 @@ async def main():
             await page.goto('https://wolnelektury.pl/katalog/nowe/')
             await refuse_help(page)
 
-            # FTYMI for position in range(100)
-            #     if position not in read_books.txt
-            #         book = await page.query_selector(f'#book-list article:nth-child({position})')
-            # book = await page.query_selector('#book-list article:nth-child(9)')
             for position in range(99, -1, -1):
                 book = await page.query_selector(new_book_titles[position])
                 result = dict()
