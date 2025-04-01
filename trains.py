@@ -62,6 +62,10 @@ async def main():
                         await refuse_help(page)
                         found_phrases.append(rail_phrase)
                 result['train_phrase'] = found_phrases
+                with open('read_books.txt', 'w') as file:
+                    file.write(
+                        f'{book_url}'
+                    )
                 print(result)
             with open(f'{title}.txt', 'w') as file:
                 file.write(
@@ -69,14 +73,14 @@ async def main():
                     f'{found_phrases}')
             #new_title_list =  with open('read_books.txt', 'x'):
             #     pass
-            if new_title_list() is True:
-                with open('read_books.txt', 'r+') as f:
-                    old = f.read()
-                    f.seek(0)
-                    f.write(f'{title}' + f', {old}')
-            else:
-                pass
-            await browser.close()
+            # if new_title_list() is True:
+            #     with open('read_books.txt', 'r+') as f:
+            #         old = f.read()
+            #         f.seek(0)
+            #         f.write(f'{title}' + f', {old}')
+            # else:
+            #     pass
+            # await browser.close()
 
 
 new_book_titles = ["#book-list article:nth-child(1)", "#book-list article:nth-child(2)",
