@@ -14,6 +14,7 @@ async def main():
             await page.goto('https://wolnelektury.pl/katalog/nowe/')
             await refuse_help(page)
 
+
             for position in range(99, -1, -1):
                 book = await page.query_selector(new_book_titles[position])
                 result = dict()
