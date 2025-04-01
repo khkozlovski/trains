@@ -1,3 +1,6 @@
+import re
+
+import unidecode
 from playwright.async_api import async_playwright, expect
 import asyncio
 
@@ -22,13 +25,24 @@ async def main():
                 result['title'] = await title_el.inner_text() if title_el else None
                 author_el = await book.query_selector('h3  a')
                 result['author'] = await author_el.inner_text() if author_el else None
-                print(result)
                 author_name = await author_el.inner_text() if author_el else None
                 author_last_name = author_name.split()[-1].lower() if author_name else None
                 title = await title_el.inner_text()
-                title_slug = title.replace(' ', '-').lower()
+                title_ascii = unidecode.unidecode(title)
+                title_clean = re.sub(r'[^a-zA-Z0-9 ]+', '', title_ascii)
+                title_slug = title_clean.replace(" ", "-").lower()
                 book_url = 'https://wolnelektury.pl/katalog/lektura/' + f'{author_last_name}' + '-' + f'{title_slug}' + '.html'
-                print(book_url)
+                with open('read_books.txt', 'r') as f:
+                    content = f.read()
+                    if f'{title_clean}, {author_last_name}' not in content:
+                        print(result)
+                        print(book_url)
+                        with open('read_books.txt', 'a') as file:
+                            file.write(
+                                f'{title_clean}, {author_last_name}\n'
+                            )
+                    else:
+                        print('Book read')
 
             cover = await book.query_selector('figure a img')
             try:
@@ -62,10 +76,6 @@ async def main():
                         await refuse_help(page)
                         found_phrases.append(rail_phrase)
                 result['train_phrase'] = found_phrases
-                with open('read_books.txt', 'w') as file:
-                    file.write(
-                        f'{book_url}'
-                    )
                 print(result)
             with open(f'{title}.txt', 'w') as file:
                 file.write(
