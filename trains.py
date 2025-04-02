@@ -28,6 +28,7 @@ async def main():
                     title = await title_el.inner_text()
                     title_ascii = unidecode.unidecode(title)
                     title_clean = re.sub(r'[^a-zA-Z0-9 ]+', '', title_ascii)
+                    cover = await book.query_selector('figure a img')
                     # title_slug = title_clean.replace(" ", "-").lower()
                     # book_url = 'https://wolnelektury.pl/katalog/lektura/' + f'{author_last_name}' + '-' + f'{title_slug}' + '.html'
                     if f'{title_clean}, {author_last_name}' not in content:
@@ -40,7 +41,6 @@ async def main():
                     else:
                         print('Book read')
 
-            cover = await book.query_selector('figure a img')
             try:
                 await cover.click(timeout=2000)
             except Exception as error:
@@ -50,9 +50,8 @@ async def main():
 
             book_url = page.url
             translator_el = await page.query_selector(
-                '.l-header__translators')
-            translator = dict()
-            translator['translator'] = await translator_el.inner_text() if translator_el else None
+                'p.l-header__translators')
+            translator = await translator_el.inner_text() if translator_el else None
             print(translator)
             await refuse_help(page)
             read_all = await page.query_selector(
