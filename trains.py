@@ -5,6 +5,9 @@ from playwright.async_api import async_playwright, expect
 import asyncio
 
 
+# TODO make it create a .txt file for a book only if it found a train phrase
+# TODO use a better selector for book container (#book-list > article:nth-child(1) > figure)
+
 async def main():
     browsers = ['chromium']
     async with async_playwright() as p:
@@ -35,21 +38,22 @@ async def main():
                     if f'{title_clean}, {author_last_name}' not in content:
                         try:
                             await cover.click(timeout=2000)
-                            print(result)
+                            # print(result)
                         except Exception as error:
                             print(error.__class__)
                             await refuse_help(page)
                             await cover.click(timeout=2000)
-                            print(result)
+                            # print(result)
                         # print(book_url)
                         with open('read_books.txt', 'a') as file:
                             file.write(
                                 f'{title_clean}, {author_last_name}\n'
                             )
+                        print(f'{title_clean} added to read_books')
                         translator_el = await page.query_selector(
                             'p.l-header__translators')
                         translator = await translator_el.inner_text() if translator_el else None
-                        print(translator)
+                        # print(translator)
                         await refuse_help(page)
                         read_all = await page.query_selector(
                             'figure a img'
@@ -73,6 +77,8 @@ async def main():
                                 f'{found_phrases}')
                     else:
                         print('Book read')
+                await page.goto('https://wolnelektury.pl/katalog/nowe/')
+
 
 
 new_book_titles = ["#book-list article:nth-child(1)", "#book-list article:nth-child(2)",
