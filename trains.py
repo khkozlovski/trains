@@ -55,7 +55,7 @@ async def main():
             print(translator)
             await refuse_help(page)
             read_all = await page.query_selector(
-                'body > main > section.l-section.lay-s-col-rev > div > article > div.c-media > div.lay-row.lay-l-block.lay-spread > div > div.c-media__actions.lay-col.lay-l-row > div:nth-child(3) > a'
+                'figure a img'
             )
             await read_all.click()
             await refuse_help(page)
