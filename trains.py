@@ -14,38 +14,43 @@ async def main():
             await page.goto('https://wolnelektury.pl/katalog/nowe/')
             await refuse_help(page)
 
+            # FTYMI for position in range(100)
+            #     if position not in read_books.txt
+            #         book = await page.query_selector(f'#book-list article:nth-child({position})')
+            # book = await page.query_selector('#book-list article:nth-child(9)')
             for position in range(99, -1, -1):
-                book = await page.query_selector(new_book_titles[position])
-                result = dict()
-                title_el = await book.query_selector('h2  a')
-                result['title'] = await title_el.inner_text() if title_el else None
-                author_el = await book.query_selector('h3  a')
-                result['author'] = await author_el.inner_text() if author_el else None
-                author_name = await author_el.inner_text() if author_el else None
-                author_last_name = author_name.split()[-1].lower() if author_name else None
-                title = await title_el.inner_text()
-                title_ascii = unidecode.unidecode(title)
-                title_clean = re.sub(r'[^a-zA-Z0-9 ]+', '', title_ascii)
-                title_slug = title_clean.replace(" ", "-").lower()
-                book_url = 'https://wolnelektury.pl/katalog/lektura/' + f'{author_last_name}' + '-' + f'{title_slug}' + '.html'
                 with open('read_books.txt', 'r') as f:
                     content = f.read()
-                    cover = await book.query_selector('figure a img')
+                    book = await page.query_selector(new_book_titles[position])
+                    result = dict()
+                    title_el = await book.query_selector('h2  a')
+                    result['title'] = await title_el.inner_text() if title_el else None
+                    author_el = await book.query_selector('h3  a')
+                    result['author'] = await author_el.inner_text() if author_el else None
+                    author_name = await author_el.inner_text() if author_el else None
+                    author_last_name = author_name.split()[-1].lower() if author_name else None
+                    title = await title_el.inner_text()
+                    title_ascii = unidecode.unidecode(title)
+                    title_clean = re.sub(r'[^a-zA-Z0-9 ]+', '', title_ascii)
+                    title_slug = title_clean.replace(" ", "-").lower()
+                    book_url = 'https://wolnelektury.pl/katalog/lektura/' + f'{author_last_name}' + '-' + f'{title_slug}' + '.html'
                     if f'{title_clean}, {author_last_name}' not in content:
                         print(result)
                         print(book_url)
-                        try:
-                            await cover.click(timeout=2000)
-                            await refuse_help(page)
-                            await cover.click(timeout=2000)
-                            with open('read_books.txt', 'a') as file:
-                                file.write(
-                                    f'{title_clean}, {author_last_name}\n'
-                                )
-                        except Exception as error:
-                            print(error.__class__)
+                        with open('read_books.txt', 'a') as file:
+                            file.write(
+                                f'{title_clean}, {author_last_name}\n'
+                            )
                     else:
                         print('Book read')
+
+            cover = await book.query_selector('figure a img')
+            try:
+                await cover.click(timeout=2000)
+            except Exception as error:
+                print(error.__class__)
+                await refuse_help(page)
+                await cover.click(timeout=2000)
 
             translator_el = await page.query_selector(
                 '.l-header__translators')
@@ -63,6 +68,9 @@ async def main():
                 result = dict()
                 await refuse_help(page)
                 train_phrase_paragraphs = await page.query_selector_all('.paragraph')
+                # FTYMI text_el = page.locator('#book-text') TU JEST MOJA PRÓBA SPOJRZENIA NA CAŁY TEKST, ŻEBY NIE CZYTAĆ KAŻDEGO paragraphu z OSOBNA
+                # text = await text_el.inner_text() if text_el else None
+                # train_phrase_paragraphs = await expect(text).to_contain_text(rail_phrase)
                 for paragraph in train_phrase_paragraphs:
                     if rail_phrase in await paragraph.inner_text():
                         await refuse_help(page)
