@@ -6,7 +6,6 @@ import asyncio
 
 
 # TODO make it create a .txt file for a book only if it found a train phrase
-# TODO use a better selector for book container (#book-list > article:nth-child(1) > figure)
 
 async def main():
     browsers = ['chromium']
@@ -33,18 +32,13 @@ async def main():
                     title_clean = re.sub(r'[^a-zA-Z0-9 ]+', '', title_ascii) if title_el else None
                     cover = await book.query_selector('figure a img')
                     book_url = page.url
-                    # title_slug = title_clean.replace(" ", "-").lower()
-                    # book_url = 'https://wolnelektury.pl/katalog/lektura/' + f'{author_last_name}' + '-' + f'{title_slug}' + '.html'
                     if f'{title_clean}, {author_last_name}' not in content:
                         try:
-                            await cover.click(timeout=2000)
-                            # print(result)
+                            await cover.click(timeout=10000)
                         except Exception as error:
                             print(error.__class__)
                             await refuse_help(page)
-                            await cover.click(timeout=2000)
-                            # print(result)
-                        # print(book_url)
+                            await cover.click(timeout=10000)
                         with open('read_books.txt', 'a') as file:
                             file.write(
                                 f'{title_clean}, {author_last_name}\n'
@@ -53,7 +47,6 @@ async def main():
                         translator_el = await page.query_selector(
                             'p.l-header__translators')
                         translator = await translator_el.inner_text() if translator_el else None
-                        # print(translator)
                         await refuse_help(page)
                         read_all = await page.query_selector(
                             'figure a img'
@@ -71,14 +64,13 @@ async def main():
                                     found_phrases.append(rail_phrase)
                             result['train_phrase'] = found_phrases
                             print(result)
-                        with open(f'{title}.txt', 'w') as file:
+                        with open(f'{title_clean}.txt', 'w') as file:
                             file.write(
-                                f'{title}, ' f'{author_name}, ' f'{translator}\n' f'Cała książka na: {book_url}\n'
+                                f'{title_clean}, ' f'{author_name}, ' f'{translator}\n' f'Cała książka na: {book_url}\n'
                                 f'{found_phrases}')
                     else:
-                        print('Book read')
+                        print(f'{title_clean} already read')
                 await page.goto('https://wolnelektury.pl/katalog/nowe/')
-
 
 
 new_book_titles = ["#book-list article:nth-child(1)", "#book-list article:nth-child(2)",
